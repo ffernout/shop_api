@@ -8,4 +8,5 @@ urlpatterns = [
     path('api/v1/products/<int:id>/', ProductDetailView.as_view(), name='product-detail'),
     path('api/v1/reviews/', ReviewListView.as_view(), name='review-list'),
     path('api/v1/reviews/<int:id>/', ReviewDetailView.as_view(), name='review-detail'),
+    # path('/api/v1/products/reviews/', )
 ]
