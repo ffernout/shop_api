@@ -1,82 +1,37 @@
-
-from django.http import JsonResponse
-from django.views import View
 from .models import Category, Product, Review
-from django.http import Http404
-from rest_framework.decorators import api_view
-from .serializers import ProductWithReviewsSerializer
+from .serializers import ProductWithReviewsSerializer, CategorySerializer, ReviewSerializer
 from rest_framework import generics
 from django.db.models import Count
 
-
-@api_view(['GET'])
-def category_list(request):
-    categories = Category.objects.annotate(products_count=Count('product'))
-    data = [{
-        'id': category.id,
-        'name': category.name,
-        'products_count': category.products_count
-    } for category in categories]
-
-    return JsonResponse(data, safe=False)
+class CategoryListAPIView(generics.ListAPIView):
+    queryset = Category.objects.annotate(products_count=Count('product'))
+    serializer_class = CategorySerializer
 
 
-@api_view(['GET'])
-def category_detail(request, id):
-    try:
-        category = Category.objects.get(id=id)
-        return JsonResponse({
-            'id': category.id,
-            'name': category.name
-        })
-    except Category.DoesNotExist:
-        raise Http404("Category not found")
+class CategoryDetailAPIView(generics.RetrieveAPIView):
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    lookup_field = 'id'
 
 
-@api_view(['GET'])
-def product_list(request):
-    products = Product.objects.all().values('id', 'title', 'description', 'price', 'category__name')
-    return JsonResponse(list(products), safe=False)
-
-
-@api_view(['GET'])
-def product_detail(request, id):
-    try:
-        product = Product.objects.get(id=id)
-        return JsonResponse({
-            'id': product.id,
-            'title': product.title,
-            'description': product.description,
-            'price': product.price,
-            'category': product.category.name
-        })
-    except Product.DoesNotExist:
-        raise Http404("Product not found")
-
-class ProductListView(generics.ListCreateAPIView):
+class ProductListAPIView(generics.ListAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductWithReviewsSerializer
 
 
-class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
+class ProductDetailAPIView(generics.RetrieveAPIView):
     queryset = Product.objects.all()
     serializer_class = ProductWithReviewsSerializer
+    lookup_field = 'id'
 
 
-@api_view(['GET'])
-def review_list(request):
-    reviews = Review.objects.all().values('id', 'text', 'product__title')
-    return JsonResponse(list(reviews), safe=False)
+class ReviewListAPIView(generics.ListAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
 
 
-@api_view(['GET'])
-def review_detail(request, id):
-    try:
-        review = Review.objects.get(id=id)
-        return JsonResponse({
-            'id': review.id,
-            'text': review.text,
-            'product': review.product.title
-        })
-    except Review.DoesNotExist:
-        raise Http404("Review not found")
+class ReviewDetailAPIView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Review.objects.all()
+    serializer_class = ReviewSerializer
+    lookup_field = 'id'
+
